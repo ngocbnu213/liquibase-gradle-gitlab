@@ -1,0 +1,44 @@
+before_script:
+  - chmod +x gradlew
+
+variables:
+  GRADLE_USER_HOME: /cache/.gradle
+
+cache:
+  paths:
+    - .gradle
+
+stages:
+  - deploy
+
+liquibase-migration-dev:
+  image: gradle:jdk17
+  stage: deploy
+  script:
+    - ./gradlew task update -DliquibaseDBUrl=${DB_URL_DEV} -DliquibaseUsername=${DB_USER_DEV} -DliquibasePassword=${DB_PASSWORD_DEV}
+    - ./gradlew task tag ${CI_COMMIT_TAG}
+  only:
+    - tags
+  except:
+    - main
+    - staging
+
+liquibase-migration-staging:
+  image: gradle:jdk17
+  stage: deploy
+  script:
+    - ./gradlew task update -DliquibaseDBUrl=${DB_URL_STAGING} -DliquibaseUsername=${DB_USER_STAGING} -DliquibasePassword=${DB_PASSWORD_STAGING}
+  only:
+    - staging
+  except:
+    - tags
+
+liquibase-migration-prod:
+  image: gradle:jdk17
+  stage: deploy
+  script:
+    - ./gradlew task update -DliquibaseDBUrl=${DB_URL_PROD} -DliquibaseUsername=${DB_USER_PROD} -DliquibasePassword=${DB_PASSWORD_PROD}
+  only:
+    - main
+  except:
+    - tags
