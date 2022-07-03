@@ -1,0 +1,44 @@
+plugins {
+    id 'org.liquibase.gradle' version '2.0.4'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
+}
+dependencies {
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.3.5'
+    liquibaseRuntime 'org.liquibase:liquibase-groovy-dsl:2.1.1'
+    liquibaseRuntime 'mysql:mysql-connector-java:8.0.28'
+    liquibaseRuntime 'org.yaml:snakeyaml:1.26'
+}
+apply plugin: "org.liquibase.gradle"
+
+liquibase {
+    activities {
+        main {
+            //common parameters
+            changeLogFile "master.xml"
+
+        }
+    }
+}
+
+task('deploy') {
+    doFirst(){
+        liquibase {
+            activities {
+                main {
+                    url System.properties.liquibaseDBUrl
+                    username System.properties.liquibaseUsername
+                    password System.properties.liquibasePassword
+                }
+            }
+        }
+    }
+}
+update.dependsOn(deploy)
